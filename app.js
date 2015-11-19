@@ -1,15 +1,20 @@
 var express = require('express');
 var path = require('path');
-//var favicon = require('serve-favicon');
+var port = process.env.PORT || 3000;
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
+
+// importing routes
 var routes = require('./routes/index');
 var users = require('./routes/users');
 
+//initiating app
 var app = express();
 
+
+//getting db url
 var db =  require('./models/db.js');
 
 // view engine setup
@@ -61,4 +66,7 @@ app.use(function(err, req, res, next) {
 });
 
 
-module.exports = app;
+// module.exports = app;
+
+app.listen(port);
+console.log('This web service is running at ' + port  );
