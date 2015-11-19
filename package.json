@@ -1,11 +1,15 @@
 {
   "name": "oranjello-node",
-  "version": "0.0.2",
-  "description": "This is the node backend for https://github.com/Barsiwal/oranjellodev",
-  "main": "index.js",
+  "version": "0.0.0",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./bin/www"
   },
-  "author": "Atul",
-  "license": "ISC"
+  "dependencies": {
+    "body-parser": "~1.13.2",
+    "cookie-parser": "~1.3.5",
+    "debug": "~2.2.0",
+    "express": "~4.13.1",
+    "morgan": "~1.6.1"
+  }
 }
