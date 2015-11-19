@@ -1,0 +1,11 @@
+{
+  "name": "oranjello-node",
+  "version": "0.0.2",
+  "description": "This is the node backend for https://github.com/Barsiwal/oranjellodev",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Atul",
+  "license": "ISC"
+}
