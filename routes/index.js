@@ -1,4 +1,3 @@
-/* GET home page. */
 
 
 var formidable = require('formidable');
@@ -112,6 +111,8 @@ function copyFile(source, target, cb) {
             // return false;
         }
 
+
     }
 }
 // }
+

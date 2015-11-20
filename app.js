@@ -7,6 +7,7 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 
 
+
 //initiating app
 var app = express();
 
@@ -15,11 +16,18 @@ var app = express();
 
 
 //getting db url
-var db =  require('./models/db.js');
+var db =  require('./models/db');
 
+require('./models/post.js');
+require('./models/user.js');
+//-----------------------routes
+
+var routes = require('./routes/index');
+//var users = require('./routes/user');
+//----------------------------------------
 // view engine setup
-// app.set('views', path.join(__dirname, 'views'));
-//app.set('view engine', 'jade');
+ app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'jade');
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -32,14 +40,20 @@ app.use(cookieParser());
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-mongoose.connect(db.url);
-app.set('view engine', 'ejs');
+//connect to mongoose
+mongoose.connect(db.url, function(err){
+  if(err){
+    throw err;
+  }
+
+});
+
 
 // importing routes
 var routes = require('./routes/index')(app, bodyParser);
 var users = require('./routes/user');
 
-// app.use('/users', user);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
