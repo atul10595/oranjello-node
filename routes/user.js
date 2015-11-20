@@ -13,12 +13,11 @@ router.post('/api/update', function(req, res, next) {
   
   var userFbId = req.body.userid; // make sure that android has key-value pair as {"userid":fbId}
 
+
   // res.send('respond with a resource');
 });
 
 module.exports = router;
-
-
 
 
 

@@ -8,7 +8,7 @@ var mongoose = require('mongoose');
 
 // importing routes
 var routes = require('./routes/index');
-var users = require('./routes/users');
+var users = require('./routes/user');
 
 //initiating app
 var app = express();
@@ -32,7 +32,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 mongoose.connect(db.url);
 
 app.use('/', routes);
-app.use('/users', users);
+// app.use('/users', user);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -69,4 +69,4 @@ app.use(function(err, req, res, next) {
 // module.exports = app;
 
 app.listen(port);
-console.log('This web service is running at ' + port  );
+console.log('This web service is running at ' + port  )
