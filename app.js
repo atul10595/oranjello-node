@@ -6,12 +6,12 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 
-// importing routes
-var routes = require('./routes/index');
-var users = require('./routes/user');
 
 //initiating app
 var app = express();
+
+
+
 
 
 //getting db url
@@ -24,14 +24,21 @@ var db =  require('./models/db.js');
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
+
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 mongoose.connect(db.url);
+app.set('view engine', 'ejs');
 
-app.use('/', routes);
+// importing routes
+var routes = require('./routes/index')(app, bodyParser);
+var users = require('./routes/user');
+
 // app.use('/users', user);
 
 // catch 404 and forward to error handler
