@@ -6,6 +6,4 @@ var UserSchema = mongoose.Schema({
     fb_id: String
 });
 
-var User = mongoose.model('User', UserSchema);
-
-module.exports = User;
+mongoose.model('User', UserSchema);

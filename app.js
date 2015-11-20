@@ -7,19 +7,30 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 
 // importing routes
-var routes = require('./routes/index');
-var users = require('./routes/user');
 
 //initiating app
 var app = express();
 
 
 //getting db url
-var db =  require('./models/db.js');
+//var db =  require('./models/db');
+//------------------------mongoDB
+mongoose.connect('mongodb://admin:00000000@ds057244.mongolab.com:57244/oranjello', function(err){
+    if (err)
+        throw err;
+    else
+        console.log("MDB connected")
+});
+require('./models/post.js');
+require('./models/user.js');
+//-----------------------routes
 
+var routes = require('./routes/index');
+//var users = require('./routes/user');
+//----------------------------------------
 // view engine setup
-// app.set('views', path.join(__dirname, 'views'));
-//app.set('view engine', 'jade');
+ app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'jade');
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -28,8 +39,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
-mongoose.connect(db.url);
 
 app.use('/', routes);
 // app.use('/users', user);
