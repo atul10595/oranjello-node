@@ -1,14 +1,37 @@
-
-
 var formidable = require('formidable');
 var fs = require('fs');
+var basicAuth = require('basic-auth');
+
+var Post = require('../models/post.js');
+
+var _fields, _files, _imagePath = null;
+var auth = function(req, res, next) {
+    function unauthorized(res) {
+        res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
+        return res.send(401);
+    };
+
+    var user = basicAuth(req);
+
+    if (!user || !user.name || !user.pass) {
+        return unauthorized(res);
+    };
+
+    if (user.name === '28ezyn71g#Jjn#*p!2zn61289hsz$$@!#1' && user.pass === 'Bam') {
+        return next();
+    } else {
+        return unauthorized(res);
+    };
+};
 
 module.exports = function(app, bodyParser) {
 
 
 
 
-    app.get('/', function(req, res) {
+    // app.get('*', function())
+
+    app.get('/', auth, function(req, res) {
         // res.render('index', { title: 'Express' });
 
         res.send({
@@ -32,7 +55,7 @@ module.exports = function(app, bodyParser) {
     // 	res.send({"id":"Hi Karan!"});
     // });
 
-    app.post('/uploadfiles', function(req, res) {
+    app.post('/uploadfiles', auth, function(req, res) {
 
         var name, phone, email, ques;
 
@@ -42,37 +65,63 @@ module.exports = function(app, bodyParser) {
         pop("222");
         form.parse(req, function(err, fields, files) {
             console.log(fields);
+            _fields = fields;
+            _files = files;
+
             console.log(files);
             pop("22-111");
 
 
-            var temp_path = files.yolo_image.path;
-            var imagePath = "public/images/" + files.yolo_image.name;
+            if (files.yolo_image) {
+                var temp_path = files.yolo_image.path;
+                var imagePath = "public/images/" + (new Date().getTime()) + "-" + files.yolo_image.name;
+                _imagePath = imagePath;
 
+            } else {
+                var temp_path = null;
 
-            // fs.createReadStream(temp_path).pipe(fs.createWriteStream(imagePath));
-
-            var callback = function(status){
-
-            	if(status)
-            		res.send({"OK":"OK"});
-				else
-					{res.send({"NOT":"OK"});}
             }
 
-			copyFile(temp_path, imagePath, callback);
-				
+            
+            // fs.createReadStream(temp_path).pipe(fs.createWriteStream(imagePath));
 
-            // form.on('end', function(err, fields) {
-            //     // console.log(files);
-            //     pop("33333");
-            //     res.send({
-            //         "id": "Hi Karan!"
-            //     });
 
-            //     //  res.end(util.inspect({fields: fields, files: files}));
 
-            // });
+            var callback = function(status) {
+
+                console.log("Called callback status = " + status);
+                if (status == true) {
+                    var dt = new Date().getDate();
+
+                    console.log("Called post function");
+                    new Post({
+                        user_id: _fields.userID,
+                        title: _fields.title,
+                        body: _fields.body,
+                        img_url: _imagePath.split('/').splice(0, 1).join('/'),
+                        date: Date.now()
+                    }).save(function(err, obj) {
+
+                        if (!err) {
+
+                            console.log(obj + "Post saved success!");
+
+                        } else
+                            throw err
+                    });
+                    res.send({
+                        "OK": "OK"
+                    });
+                } else {
+                    res.send({
+                        "NOT": "OK"
+                    });
+                }
+            }
+
+            copyFile(temp_path, imagePath, callback);
+
+
 
 
         });
@@ -104,15 +153,20 @@ function copyFile(source, target, cb) {
     rd.pipe(wr);
 
     function done(err) {
+        console.log("Called copyFile-dene");
         if (!cbCalled) {
-            cb(err);
+            if (err)
+                cb(err);
+            else
+                cb(true);
             cbCalled = true;
+
 
             // return false;
         }
 
 
+
     }
 }
 // }
-
