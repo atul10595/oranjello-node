@@ -15,4 +15,5 @@ npm-debug.log
 .DS_Store
 
 node_modules
+public/images
 ACCOUNTS
