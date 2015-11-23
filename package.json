@@ -15,6 +15,7 @@
     "express": "~4.13.1",
     "formidable": "^1.0.17",
     "fs": "0.0.2",
+    "hogan-express": "^0.5.2",
     "kerberos": "0.0.17",
     "mongoose": "^4.2.6",
     "morgan": "~1.6.1"

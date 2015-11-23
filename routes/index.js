@@ -82,7 +82,7 @@ module.exports = function(app, bodyParser) {
 
             }
 
-            
+
             // fs.createReadStream(temp_path).pipe(fs.createWriteStream(imagePath));
 
 
@@ -98,7 +98,7 @@ module.exports = function(app, bodyParser) {
                         user_id: _fields.userID,
                         title: _fields.title,
                         body: _fields.body,
-                        img_url: _imagePath.split('/').splice(0, 1).join('/'),
+                        img_url: _imagePath.split('/').splice(1, _imagePath.length - 1).join('/'),
                         date: Date.now()
                     }).save(function(err, obj) {
 
@@ -128,7 +128,40 @@ module.exports = function(app, bodyParser) {
 
     });
 
+var noMorePostResponse = {status: -1, msg: "No More Posts"};
+// GET for latest posts
+    app.get('/newposts/:q', function(req, res) {
+
+    	console.log(req.param('q'));
+        getPosts(req.param('q'), function(post) {
+        	if(post!=false)
+            	res.send(post);
+            else
+            	res.send(noMorePostResponse);
+        });
+
+        // res.send("HEY");
+
+    });
+
 }
+
+//reply to the get reuest for latest post from the app
+var getPosts = function(q, callback) {
+
+    Post.find({}).sort('-date').exec(function(err, posts) {
+    	
+    	if(q<posts.length)
+        	callback(posts[q]);
+        else
+        	callback(false);
+    });
+
+
+    // callback();
+}
+
+
 var pop = function(str) {
     console.log(str);
 
