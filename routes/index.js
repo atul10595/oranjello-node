@@ -51,8 +51,8 @@ module.exports = function(app, bodyParser) {
 
 
     // app.post('/uploadfiles', function(req, res){
-    // 	console.log(req.files);
-    // 	res.send({"id":"Hi Karan!"});
+    //  console.log(req.files);
+    //  res.send({"id":"Hi Karan!"});
     // });
 
     app.post('/uploadfiles', auth, function(req, res) {
@@ -128,16 +128,53 @@ module.exports = function(app, bodyParser) {
 
     });
 
-var noMorePostResponse = {status: -1, msg: "No More Posts"};
-// GET for latest posts
-    app.get('/newposts/:q', function(req, res) {
+    var noMorePostResponse = {
+        status: -1,
+        msg: "No More Posts"
+    };
 
-    	console.log(req.param('q'));
-        getPosts(req.param('q'), function(post) {
-        	if(post!=false)
-            	res.send(post);
+
+
+    // GET for latest posts in decreasingorder of date
+    app.get('/newposts/hot/:q', function(req, res) {
+
+        // console.log(req.param('q'));
+        getPosts(req.param('q'), 1,  function(post) {
+            if (post != false)
+                res.send(post);
             else
-            	res.send(noMorePostResponse);
+                res.send(noMorePostResponse);
+        });
+
+        // res.send("HEY");
+
+    });
+
+      // GET for all posts in reverse order of date
+    app.get('/newposts/trending/:q', function(req, res) {
+
+        // console.log(req.param('q'));
+        getPosts(req.param('q'), -1, function(post) {
+            if (post != false)
+                res.send(post);
+            else
+                res.send(noMorePostResponse);
+        });
+
+        // res.send("HEY");
+
+    });
+
+      // GET for latest posts sorted alphabetically by title
+    app.get('/newposts/new/:q', function(req, res) {
+
+
+        // console.log(req.param('q'));
+        getPostsSortedByTitle(req.param('q'), function(post) {
+            if (post != false)
+                res.send(post);
+            else
+                res.send(noMorePostResponse);
         });
 
         // res.send("HEY");
@@ -147,18 +184,45 @@ var noMorePostResponse = {status: -1, msg: "No More Posts"};
 }
 
 //reply to the get reuest for latest post from the app
-var getPosts = function(q, callback) {
+/**
+    isReverse = 1 for latest posts first
+    otherwise, -1
+**/
+var getPosts = function(q, isReverse, callback) {
+
+    if(isReverse == 1){
 
     Post.find({}).sort('-date').exec(function(err, posts) {
-    	
-    	if(q<posts.length)
-        	callback(posts[q]);
+
+        if (q < posts.length)
+            callback(posts[q]);
         else
-        	callback(false);
+            callback(false);
     });
+}
+else{
+        Post.find({}).sort('date').exec(function(err, posts) {
+
+        if (q < posts.length)
+            callback(posts[q]);
+        else
+            callback(false);
+    });
+}
 
 
     // callback();
+}
+
+var getPostsSortedByTitle = function(q, callback) {
+
+    Post.find({}).sort('title').exec(function(err, posts) {
+
+        if (q < posts.length)
+            callback(posts[q]);
+        else
+            callback(false);
+    });
 }
 
 
