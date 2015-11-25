@@ -139,7 +139,7 @@ module.exports = function(app, bodyParser) {
     app.get('/newposts/hot/:q', function(req, res) {
 
         // console.log(req.param('q'));
-        getPosts(req.param('q'), 1,  function(post) {
+        getPosts(req.param('q'), 1, function(post) {
             if (post != false)
                 res.send(post);
             else
@@ -150,7 +150,7 @@ module.exports = function(app, bodyParser) {
 
     });
 
-      // GET for all posts in reverse order of date
+    // GET for all posts in reverse order of date
     app.get('/newposts/trending/:q', function(req, res) {
 
         // console.log(req.param('q'));
@@ -165,7 +165,7 @@ module.exports = function(app, bodyParser) {
 
     });
 
-      // GET for latest posts sorted alphabetically by title
+    // GET for latest posts sorted alphabetically by title
     app.get('/newposts/new/:q', function(req, res) {
 
 
@@ -181,6 +181,20 @@ module.exports = function(app, bodyParser) {
 
     });
 
+
+
+
+    // GET for latest posts sorted alphabetically by title
+    app.get('/newposts/getcount', function(req, res) {
+
+        Post.count({}, function(err, count) {
+            console.log("Number of docs: ", count);
+            res.send({"count":count});
+            // res.send("HEY");
+
+        });
+    });
+
 }
 
 //reply to the get reuest for latest post from the app
@@ -190,25 +204,24 @@ module.exports = function(app, bodyParser) {
 **/
 var getPosts = function(q, isReverse, callback) {
 
-    if(isReverse == 1){
+    if (isReverse == 1) {
 
-    Post.find({}).sort('-date').exec(function(err, posts) {
+        Post.find({}).sort('-date').exec(function(err, posts) {
 
-        if (q < posts.length)
-            callback(posts[q]);
-        else
-            callback(false);
-    });
-}
-else{
+            if (q < posts.length)
+                callback(posts[q]);
+            else
+                callback(false);
+        });
+    } else {
         Post.find({}).sort('date').exec(function(err, posts) {
 
-        if (q < posts.length)
-            callback(posts[q]);
-        else
-            callback(false);
-    });
-}
+            if (q < posts.length)
+                callback(posts[q]);
+            else
+                callback(false);
+        });
+    }
 
 
     // callback();
