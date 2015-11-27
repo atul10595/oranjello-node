@@ -59,8 +59,8 @@ module.exports = function (app, bodyParser) {
         })
     });
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    app.post('/api/posts/dislike', auth, function (req, res) {
-        Posts.findById(req.body.post_id, function (err, post) {
+    app.post('/api/posts/dislike', function (req, res) {
+        Post.findById(req.body.post_id, function (err, post) {
             if (err) {
                 return err;
             } else if ((post.liked_by.indexOf(req.body.user_id) > -1) && (post.disliked_by.indexOf(req.body.user_id) < 0)) {
@@ -87,8 +87,20 @@ module.exports = function (app, bodyParser) {
         });
     });
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    app.post('/api/posts/like', auth, function (req, res) {
-        Posts.findById(req.body.post_id, function (err, post) {
+    app.get('/api/posts/getvodets',function(req,res){
+        Post.findById(req.body.post_id,function(err,post){
+            if(err) console.log(err);
+            if(post){
+                res.send({
+                    post_id:post._id,
+                    votes:post.likes
+                });
+            }
+        });
+    });
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    app.post('/api/posts/like', function (req, res) {
+        Post.findById(req.body.post_id, function (err, post) {
             if (err) {
                 return err;
             } else if ((post.liked_by.indexOf(req.body.user_id) < 0) && (post.disliked_by.indexOf(req.body.user_id) > -1)) {
@@ -143,7 +155,7 @@ module.exports = function (app, bodyParser) {
     //  res.send({"id":"Hi Karan!"});
     // });
 
-    app.post('/uploadfiles', auth, function (req, res) {
+    app.post('/uploadfiles', function (req, res) {
 
         var name, phone, email, ques;
 
