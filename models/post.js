@@ -6,6 +6,8 @@ var PostSchema = mongoose.Schema({
 	title: String,
     body: String,
     img_url: String,
+    likes:{type:Number, default:0},
+    liked_by:[String],
     date: Date
 
 });
