@@ -1,9 +1,11 @@
 var formidable = require('formidable');
 var fs = require('fs');
 var basicAuth = require('basic-auth');
-
-var Post = require('../models/post.js');
-var User = require('../models/user.js');
+var mongoose = require('mongoose');
+var Post = mongoose.model('Post');
+var User = mongoose.model('User');
+//var Post = require('../models/post.js');
+//var User = require('../models/user.js');
 var _fields, _files, _imagePath = null;
 var auth = function (req, res, next) {
     function unauthorized(res) {
@@ -37,8 +39,9 @@ module.exports = function (app, bodyParser) {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     app.post('/api/user/store', function (req, res) {
         User.findOne({
-            'fb_id': req.body.fb_id
+            fb_id: req.body.fb_id
         }, function (err, user) {
+                    console.log('asdasdsadasdsadsa');
             if (err) {
                 return err;
             }
@@ -49,7 +52,7 @@ module.exports = function (app, bodyParser) {
                 }).save(function (err, newuser) {
                     if (err) return err;
                     else {
-                        res.send({
+                        return res.send({
                             status: 'ok',
                             newuser: newuser
                         });
