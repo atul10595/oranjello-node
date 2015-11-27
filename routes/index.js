@@ -35,11 +35,13 @@ module.exports = function (app, bodyParser) {
         });
     });
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    app.post('/api/user/store',function (req, res) {
+    app.post('/api/user/store', function (req, res) {
         User.findOne({
             'fb_id': req.body.fb_id
         }, function (err, user) {
-            if (err) return err;
+            if (err) {
+                return err;
+            }
             if (!user) {
                 new User({
                     name: req.body.name,
@@ -59,9 +61,11 @@ module.exports = function (app, bodyParser) {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     app.post('/api/posts/dislike', auth, function (req, res) {
         Posts.findById(req.body.post_id, function (err, post) {
-            if (err) return err;
-            else if (post.liked_by.indexOf(req.body.user_id) > -1) {
+            if (err) {
+                return err;
+            } else if ((post.liked_by.indexOf(req.body.user_id) > -1) && (post.disliked_by.indexOf(req.body.user_id) < 0)) {
                 post.liked_by.splice(post.liked_by.indexOf(req.body.user_id), 1);
+                post.disliked_by.push(req.body.user_id);
                 post.likes = post.likes - 1;
                 post.save(function (err) {
                     if (err) console.log('post point dint decrease.');
@@ -72,14 +76,23 @@ module.exports = function (app, bodyParser) {
                     });
                     res.send(post);
                 });
+            } else if ((post.disliked_by.indexOf(req.body.user_id) < 0) && (post.liked_by.indexOf(req.body.user_id) < 0)) {
+                post.disliked_by.push(req.body.user_id);
+                post.likes = post.likes - 1;
+                post.save(function (err) {
+                    if (err) console.log('post point dint decrease.');
+                    res.send(post);
+                });
             }
         });
     });
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     app.post('/api/posts/like', auth, function (req, res) {
         Posts.findById(req.body.post_id, function (err, post) {
-            if (err) return err;
-            else if (post.liked_by.indexOf(req.body.user_id) < 0) {
+            if (err) {
+                return err;
+            } else if ((post.liked_by.indexOf(req.body.user_id) < 0) && (post.disliked_by.indexOf(req.body.user_id) > -1)) {
+                post.disliked_by.splice(post.disliked_by.indexOf(req.body.user_id), 1);
                 post.liked_by.push(req.body.user_id);
                 post.likes = post.likes + 1;
                 post.save(function (err) {
@@ -88,10 +101,25 @@ module.exports = function (app, bodyParser) {
                         fb_id: post.user_id
                     }, function (err, user) {
                         if (err) return err;
-                        post.liked_by.push(user)
                         user.points = user.points + 1;
                         user.save(function (err) {
-                            if (err) console.log('user point dint inc.');
+                            if (err) console.log('user points dint inc');
+                        });
+                    });
+                    res.send(post);
+                });
+            } else if ((post.disliked_by.indexOf(req.body.user_id) < 0) && (post.liked_by.indexOf(req.body.user_id) < 0)) {
+                post.disliked_by.push(req.body.user_id);
+                post.likes = post.likes + 1;
+                post.save(function (err) {
+                    if (err) console.log('post point dint inc.');
+                    User.findOne({
+                        fb_id: post.user_id
+                    }, function (err, user) {
+                        if (err) return err;
+                        user.points = user.points + 1;
+                        user.save(function (err) {
+                            if (err) console.log('user points dint inc');
                         });
                     });
                     res.send(post);
