@@ -1,6 +1,6 @@
 var express = require('express');
 var path = require('path');
-var port = process.env.PORT || 3000; //3000 for development and 80 for production
+var port = process.env.PORT || 80; //3000 for development and 80 for production
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
