@@ -98,6 +98,16 @@ module.exports = function (app, bodyParser) {
             }
         });
     });
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    app.post('/api/user/getname',function(req,res){
+        User.findOne({fb_id:req.body.user_id},function(err,user){
+            if(err) console.log('error!');
+            return res.send({
+                username:user.name
+            });
+        });
+    });
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     app.post('/api/posts/getvotes', function (req, res) {
         Post.findById(req.body.post_id, function (err, post) {
