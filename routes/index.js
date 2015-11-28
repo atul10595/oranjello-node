@@ -62,14 +62,6 @@ module.exports = function (app, bodyParser) {
         })
     });
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    app.post('/api/user/info', function (req, res) {
-        Post.find({
-            user_id: req.body.user_id
-        }, function (err, posts) {
-            if (err) console.log('ERROR!!!');
-            return res.send(posts);
-        })
-    });
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     app.post('/api/posts/dislike', function (req, res) {
         Post.findById(req.body.post_id, function (err, post) {
@@ -215,12 +207,8 @@ module.exports = function (app, bodyParser) {
 
 
             // fs.createReadStream(temp_path).pipe(fs.createWriteStream(imagePath));
-
-
-
             var callback = function (status) {
-
-                console.log("Called callback status = " + status);
+              console.log("Called callback status = " + status);
                 if (status == true) {
                     var dt = new Date().getDate();
 
@@ -251,12 +239,7 @@ module.exports = function (app, bodyParser) {
                     });
                 }
             }
-
             copyFile(temp_path, imagePath, callback);
-
-
-
-
         });
 
     });
@@ -265,9 +248,6 @@ module.exports = function (app, bodyParser) {
         status: -1,
         msg: "No More Posts"
     };
-
-
-
     // GET for latest posts in decreasingorder of date
     app.get('/newposts/hot/:q', function (req, res) {
 
@@ -293,9 +273,14 @@ module.exports = function (app, bodyParser) {
             else
                 res.send(noMorePostResponse);
         });
-
-        // res.send("HEY");
-
+    });
+    app.post('/api/user/info/:q', function (req, res) {
+        getUserPosts(req.param('q'), req.body.user_id, function (post) {
+            if (post != false)
+                res.send(post);
+            else
+                res.send(noMorePostResponse);
+        });
     });
 
     // GET for latest posts sorted alphabetically by title
@@ -313,10 +298,6 @@ module.exports = function (app, bodyParser) {
         // res.send("HEY");
 
     });
-
-
-
-
     // GET for latest posts sorted alphabetically by title
     app.get('/newposts/getcount', function (req, res) {
 
@@ -329,26 +310,8 @@ module.exports = function (app, bodyParser) {
 
         });
     });
-
 }
-
-//reply to the get reuest for latest post from the app
-/**
-    isReverse = 1 for latest posts first
-    otherwise, -1
-**/
 var getPosts = function (q, isReverse, callback) {
-
-    if (isReverse == 1) {
-
-        Post.find({}).sort('-date').exec(function (err, posts) {
-
-            if (q < posts.length)
-                callback(posts[q]);
-            else
-                callback(false);
-        });
-    } else {
         Post.find({}).sort('date').exec(function (err, posts) {
 
             if (q < posts.length)
@@ -356,8 +319,17 @@ var getPosts = function (q, isReverse, callback) {
             else
                 callback(false);
         });
-    }
 
+    // callback();
+}
+var getUserPosts = function (q, user_id, callback) {
+        Post.find({user_id:user_id}).sort('likes').exec(function (err, posts) {
+
+            if (q < posts.length)
+                callback(posts[q]);
+            else
+                callback(false);
+        });
 
     // callback();
 }
