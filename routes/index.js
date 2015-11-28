@@ -41,7 +41,7 @@ module.exports = function (app, bodyParser) {
         User.findOne({
             fb_id: req.body.fb_id
         }, function (err, user) {
-                    console.log('asdasdsadasdsadsa');
+            console.log('asdasdsadasdsadsa');
             if (err) {
                 return err;
             }
@@ -62,16 +62,23 @@ module.exports = function (app, bodyParser) {
         })
     });
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    app.post('/api/user/info', function (req, res) {
+        Post.find({
+            user_id: req.body.user_id
+        }, function (err, posts) {
+            if (err) console.log('ERROR!!!');
+            return res.send(posts);
+        })
+    });
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     app.post('/api/posts/dislike', function (req, res) {
         Post.findById(req.body.post_id, function (err, post) {
             if (err) {
                 return err;
             } else if ((post.liked_by.indexOf(req.body.fb_id) > -1) && (post.disliked_by.indexOf(req.body.fb_id) < 0)) {
-                console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
                 post.liked_by.splice(post.liked_by.indexOf(req.body.fb_id), 1);
-                console.log()
                 post.disliked_by.push(req.body.fb_id);
-                post.likes = post.likes - 1;
+                post.likes = post.likes - 2;
                 post.save(function (err) {
                     if (err) console.log('post point dint decrease.');
                     User.findOne({
@@ -92,43 +99,50 @@ module.exports = function (app, bodyParser) {
         });
     });
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    app.post('/api/posts/getvotes',function(req,res){
-        Post.findById(req.body.post_id,function(err,post){
-            if(err) err;
-            console.log(post);
-            if(post){
-                return res.send({
-                    post_id:post._id,
-                    votes:post.likes
+    app.post('/api/posts/getvotes', function (req, res) {
+        Post.findById(req.body.post_id, function (err, post) {
+            if (err) console.log("sadasdasdasdasdasd");
+            console.log(req.body);
+            if (post) {
+                res.send({
+                    post_id: post._id,
+                    votes: post.likes
                 });
             }
         });
     });
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     app.post('/api/posts/like', function (req, res) {
+        flag=0;
         Post.findById(req.body.post_id, function (err, post) {
-            console.log('like');
             if (err) {
                 return err;
             } else if ((post.liked_by.indexOf(req.body.fb_id) < 0) && (post.disliked_by.indexOf(req.body.fb_id) > -1)) {
                 post.disliked_by.splice(post.disliked_by.indexOf(req.body.fb_id), 1);
                 post.liked_by.push(req.body.fb_id);
-                post.likes = post.likes + 1;
+                if (post.flag.indexOf(req.body.fb_id) < 0){
+                    post.liked_by.push(req.body.fb_id);
+                    flag=1;
+                }
+                post.likes = post.likes + 2;
                 post.save(function (err) {
                     if (err) console.log('post point dint inc.');
-                    User.findOne({
-                        fb_id: post.user_id
-                    }, function (err, user) {
-                        if (err) console.log('user points dint inc');
-                        user.points = user.points + 1;
-                        user.save(function (err) {
+                    if (flag===1) {
+                        User.findOne({
+                            fb_id: post.user_id
+                        }, function (err, user) {
                             if (err) console.log('user points dint inc');
+                            user.points = user.points + 1;
+                            user.save(function (err) {
+                                if (err) console.log('user points dint inc');
+                            });
                         });
-                    });
+                    }
                     res.send(post);
                 });
             } else if ((post.disliked_by.indexOf(req.body.fb_id) < 0) && (post.liked_by.indexOf(req.body.fb_id) < 0)) {
-                post.disliked_by.push(req.body.fb_id);
+                post.liked_by.push(req.body.fb_id);
+                post.flag.push(req.body.fb_id);
                 post.likes = post.likes + 1;
                 post.save(function (err) {
                     if (err) console.log('post point dint inc.');
@@ -206,8 +220,8 @@ module.exports = function (app, bodyParser) {
                         title: _fields.title,
                         body: _fields.body,
                         img_url: _imagePath.split('/').splice(1, _imagePath.length - 1).join('/'),
-                        liked_by:[],
-                        disliked_by:[],
+                        liked_by: [],
+                        disliked_by: [],
                         date: Date.now()
                     }).save(function (err, obj) {
 
