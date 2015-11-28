@@ -1,11 +1,13 @@
 var formidable = require('formidable');
 var fs = require('fs');
 var basicAuth = require('basic-auth');
-
-var Post = require('../models/post.js');
-
+var mongoose = require('mongoose');
+var Post = mongoose.model('Post');
+var User = mongoose.model('User');
+//var Post = require('../models/post.js');
+//var User = require('../models/user.js');
 var _fields, _files, _imagePath = null;
-var auth = function(req, res, next) {
+var auth = function (req, res, next) {
     function unauthorized(res) {
         res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
         return res.send(401);
@@ -24,25 +26,130 @@ var auth = function(req, res, next) {
     };
 };
 
-module.exports = function(app, bodyParser) {
-
-
-
-
+module.exports = function (app, bodyParser) {
     // app.get('*', function())
 
-    app.get('/', auth, function(req, res) {
+    app.get('/', auth, function (req, res) {
         // res.render('index', { title: 'Express' });
 
         res.send({
             "name": "You are at home!"
         });
     });
-
-
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    app.post('/api/user/store', function (req, res) {
+        User.findOne({
+            fb_id: req.body.fb_id
+        }, function (err, user) {
+                    console.log('asdasdsadasdsadsa');
+            if (err) {
+                return err;
+            }
+            if (!user) {
+                new User({
+                    name: req.body.name,
+                    fb_id: req.body.fb_id
+                }).save(function (err, newuser) {
+                    if (err) return err;
+                    else {
+                        return res.send({
+                            status: 'ok',
+                            newuser: newuser
+                        });
+                    }
+                });
+            }
+        })
+    });
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    app.post('/api/posts/dislike', function (req, res) {
+        Post.findById(req.body.post_id, function (err, post) {
+            if (err) {
+                return err;
+            } else if ((post.liked_by.indexOf(req.body.fb_id) > -1) && (post.disliked_by.indexOf(req.body.fb_id) < 0)) {
+                console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+                post.liked_by.splice(post.liked_by.indexOf(req.body.fb_id), 1);
+                console.log()
+                post.disliked_by.push(req.body.fb_id);
+                post.likes = post.likes - 1;
+                post.save(function (err) {
+                    if (err) console.log('post point dint decrease.');
+                    User.findOne({
+                        fb_id: post.user_id
+                    }, function (err, user) {
+                        if (err) return err;
+                    });
+                    res.send(post);
+                });
+            } else if ((post.disliked_by.indexOf(req.body.fb_id) < 0) && (post.liked_by.indexOf(req.body.fb_id) < 0)) {
+                post.disliked_by.push(req.body.fb_id);
+                post.likes = post.likes - 1;
+                post.save(function (err) {
+                    if (err) console.log('post point dint decrease.');
+                    res.send(post);
+                });
+            }
+        });
+    });
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    app.post('/api/posts/getvotes',function(req,res){
+        Post.findById(req.body.post_id,function(err,post){
+            if(err) err;
+            console.log(post);
+            if(post){
+                return res.send({
+                    post_id:post._id,
+                    votes:post.likes
+                });
+            }
+        });
+    });
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    app.post('/api/posts/like', function (req, res) {
+        Post.findById(req.body.post_id, function (err, post) {
+            console.log('like');
+            if (err) {
+                return err;
+            } else if ((post.liked_by.indexOf(req.body.fb_id) < 0) && (post.disliked_by.indexOf(req.body.fb_id) > -1)) {
+                post.disliked_by.splice(post.disliked_by.indexOf(req.body.fb_id), 1);
+                post.liked_by.push(req.body.fb_id);
+                post.likes = post.likes + 1;
+                post.save(function (err) {
+                    if (err) console.log('post point dint inc.');
+                    User.findOne({
+                        fb_id: post.user_id
+                    }, function (err, user) {
+                        if (err) console.log('user points dint inc');
+                        user.points = user.points + 1;
+                        user.save(function (err) {
+                            if (err) console.log('user points dint inc');
+                        });
+                    });
+                    res.send(post);
+                });
+            } else if ((post.disliked_by.indexOf(req.body.fb_id) < 0) && (post.liked_by.indexOf(req.body.fb_id) < 0)) {
+                post.disliked_by.push(req.body.fb_id);
+                post.likes = post.likes + 1;
+                post.save(function (err) {
+                    if (err) console.log('post point dint inc.');
+                    User.findOne({
+                        fb_id: post.user_id
+                    }, function (err, user) {
+                        if (err) return err;
+                        user.points = user.points + 1;
+                        user.save(function (err) {
+                            if (err) console.log('user points dint inc');
+                        });
+                    });
+                    res.send(post);
+                });
+            }
+        });
+    });
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     var jsonParser = bodyParser.json();
 
-    app.post('/upload', function(req, res) {
+    app.post('/upload', function (req, res) {
         console.log(req.body);
         res.send({
             "id": "this has been shifted to /uploadfiles!"
@@ -55,7 +162,7 @@ module.exports = function(app, bodyParser) {
     //  res.send({"id":"Hi Karan!"});
     // });
 
-    app.post('/uploadfiles', auth, function(req, res) {
+    app.post('/uploadfiles', function (req, res) {
 
         var name, phone, email, ques;
 
@@ -63,7 +170,7 @@ module.exports = function(app, bodyParser) {
         var form = new formidable.IncomingForm();
 
         pop("222");
-        form.parse(req, function(err, fields, files) {
+        form.parse(req, function (err, fields, files) {
             console.log(fields);
             _fields = fields;
             _files = files;
@@ -87,7 +194,7 @@ module.exports = function(app, bodyParser) {
 
 
 
-            var callback = function(status) {
+            var callback = function (status) {
 
                 console.log("Called callback status = " + status);
                 if (status == true) {
@@ -99,8 +206,10 @@ module.exports = function(app, bodyParser) {
                         title: _fields.title,
                         body: _fields.body,
                         img_url: _imagePath.split('/').splice(1, _imagePath.length - 1).join('/'),
+                        liked_by:[],
+                        disliked_by:[],
                         date: Date.now()
-                    }).save(function(err, obj) {
+                    }).save(function (err, obj) {
 
                         if (!err) {
 
@@ -136,10 +245,10 @@ module.exports = function(app, bodyParser) {
 
 
     // GET for latest posts in decreasingorder of date
-    app.get('/newposts/hot/:q', function(req, res) {
+    app.get('/newposts/hot/:q', function (req, res) {
 
         // console.log(req.param('q'));
-        getPosts(req.param('q'), 1, function(post) {
+        getPosts(req.param('q'), 1, function (post) {
             if (post != false)
                 res.send(post);
             else
@@ -151,10 +260,10 @@ module.exports = function(app, bodyParser) {
     });
 
     // GET for all posts in reverse order of date
-    app.get('/newposts/trending/:q', function(req, res) {
+    app.get('/newposts/trending/:q', function (req, res) {
 
         // console.log(req.param('q'));
-        getPosts(req.param('q'), -1, function(post) {
+        getPosts(req.param('q'), -1, function (post) {
             if (post != false)
                 res.send(post);
             else
@@ -166,11 +275,11 @@ module.exports = function(app, bodyParser) {
     });
 
     // GET for latest posts sorted alphabetically by title
-    app.get('/newposts/new/:q', function(req, res) {
+    app.get('/newposts/new/:q', function (req, res) {
 
 
         // console.log(req.param('q'));
-        getPostsSortedByTitle(req.param('q'), function(post) {
+        getPostsSortedByTitle(req.param('q'), function (post) {
             if (post != false)
                 res.send(post);
             else
@@ -185,11 +294,13 @@ module.exports = function(app, bodyParser) {
 
 
     // GET for latest posts sorted alphabetically by title
-    app.get('/newposts/getcount', function(req, res) {
+    app.get('/newposts/getcount', function (req, res) {
 
-        Post.count({}, function(err, count) {
+        Post.count({}, function (err, count) {
             console.log("Number of docs: ", count);
-            res.send({"count":count});
+            res.send({
+                "count": count
+            });
             // res.send("HEY");
 
         });
@@ -202,11 +313,11 @@ module.exports = function(app, bodyParser) {
     isReverse = 1 for latest posts first
     otherwise, -1
 **/
-var getPosts = function(q, isReverse, callback) {
+var getPosts = function (q, isReverse, callback) {
 
     if (isReverse == 1) {
 
-        Post.find({}).sort('-date').exec(function(err, posts) {
+        Post.find({}).sort('-date').exec(function (err, posts) {
 
             if (q < posts.length)
                 callback(posts[q]);
@@ -214,7 +325,7 @@ var getPosts = function(q, isReverse, callback) {
                 callback(false);
         });
     } else {
-        Post.find({}).sort('date').exec(function(err, posts) {
+        Post.find({}).sort('date').exec(function (err, posts) {
 
             if (q < posts.length)
                 callback(posts[q]);
@@ -227,9 +338,9 @@ var getPosts = function(q, isReverse, callback) {
     // callback();
 }
 
-var getPostsSortedByTitle = function(q, callback) {
+var getPostsSortedByTitle = function (q, callback) {
 
-    Post.find({}).sort('title').exec(function(err, posts) {
+    Post.find({}).sort('title').exec(function (err, posts) {
 
         if (q < posts.length)
             callback(posts[q]);
@@ -239,7 +350,7 @@ var getPostsSortedByTitle = function(q, callback) {
 }
 
 
-var pop = function(str) {
+var pop = function (str) {
     console.log(str);
 
 }
@@ -250,14 +361,14 @@ function copyFile(source, target, cb) {
     var cbCalled = false;
 
     var rd = fs.createReadStream(source);
-    rd.on("error", function(err) {
+    rd.on("error", function (err) {
         done(err);
     });
     var wr = fs.createWriteStream(target);
-    wr.on("error", function(err) {
+    wr.on("error", function (err) {
         done(err);
     });
-    wr.on("close", function(ex) {
+    wr.on("close", function (ex) {
         done();
     });
     rd.pipe(wr);
