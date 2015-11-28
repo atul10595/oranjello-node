@@ -66,9 +66,11 @@ module.exports = function (app, bodyParser) {
         Post.findById(req.body.post_id, function (err, post) {
             if (err) {
                 return err;
-            } else if ((post.liked_by.indexOf(req.body.user_id) > -1) && (post.disliked_by.indexOf(req.body.user_id) < 0)) {
-                post.liked_by.splice(post.liked_by.indexOf(req.body.user_id), 1);
-                post.disliked_by.push(req.body.user_id);
+            } else if ((post.liked_by.indexOf(req.body.fb_id) > -1) && (post.disliked_by.indexOf(req.body.fb_id) < 0)) {
+                console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+                post.liked_by.splice(post.liked_by.indexOf(req.body.fb_id), 1);
+                console.log()
+                post.disliked_by.push(req.body.fb_id);
                 post.likes = post.likes - 1;
                 post.save(function (err) {
                     if (err) console.log('post point dint decrease.');
@@ -79,8 +81,8 @@ module.exports = function (app, bodyParser) {
                     });
                     res.send(post);
                 });
-            } else if ((post.disliked_by.indexOf(req.body.user_id) < 0) && (post.liked_by.indexOf(req.body.user_id) < 0)) {
-                post.disliked_by.push(req.body.user_id);
+            } else if ((post.disliked_by.indexOf(req.body.fb_id) < 0) && (post.liked_by.indexOf(req.body.fb_id) < 0)) {
+                post.disliked_by.push(req.body.fb_id);
                 post.likes = post.likes - 1;
                 post.save(function (err) {
                     if (err) console.log('post point dint decrease.');
@@ -90,11 +92,12 @@ module.exports = function (app, bodyParser) {
         });
     });
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    app.get('/api/posts/getvodets',function(req,res){
+    app.post('/api/posts/getvotes',function(req,res){
         Post.findById(req.body.post_id,function(err,post){
-            if(err) console.log(err);
+            if(err) err;
+            console.log(post);
             if(post){
-                res.send({
+                return res.send({
                     post_id:post._id,
                     votes:post.likes
                 });
@@ -104,18 +107,19 @@ module.exports = function (app, bodyParser) {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     app.post('/api/posts/like', function (req, res) {
         Post.findById(req.body.post_id, function (err, post) {
+            console.log('like');
             if (err) {
                 return err;
-            } else if ((post.liked_by.indexOf(req.body.user_id) < 0) && (post.disliked_by.indexOf(req.body.user_id) > -1)) {
-                post.disliked_by.splice(post.disliked_by.indexOf(req.body.user_id), 1);
-                post.liked_by.push(req.body.user_id);
+            } else if ((post.liked_by.indexOf(req.body.fb_id) < 0) && (post.disliked_by.indexOf(req.body.fb_id) > -1)) {
+                post.disliked_by.splice(post.disliked_by.indexOf(req.body.fb_id), 1);
+                post.liked_by.push(req.body.fb_id);
                 post.likes = post.likes + 1;
                 post.save(function (err) {
                     if (err) console.log('post point dint inc.');
                     User.findOne({
                         fb_id: post.user_id
                     }, function (err, user) {
-                        if (err) return err;
+                        if (err) console.log('user points dint inc');
                         user.points = user.points + 1;
                         user.save(function (err) {
                             if (err) console.log('user points dint inc');
@@ -123,8 +127,8 @@ module.exports = function (app, bodyParser) {
                     });
                     res.send(post);
                 });
-            } else if ((post.disliked_by.indexOf(req.body.user_id) < 0) && (post.liked_by.indexOf(req.body.user_id) < 0)) {
-                post.disliked_by.push(req.body.user_id);
+            } else if ((post.disliked_by.indexOf(req.body.fb_id) < 0) && (post.liked_by.indexOf(req.body.fb_id) < 0)) {
+                post.disliked_by.push(req.body.fb_id);
                 post.likes = post.likes + 1;
                 post.save(function (err) {
                     if (err) console.log('post point dint inc.');
@@ -202,6 +206,8 @@ module.exports = function (app, bodyParser) {
                         title: _fields.title,
                         body: _fields.body,
                         img_url: _imagePath.split('/').splice(1, _imagePath.length - 1).join('/'),
+                        liked_by:[],
+                        disliked_by:[],
                         date: Date.now()
                     }).save(function (err, obj) {
 
