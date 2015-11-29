@@ -1,5 +1,9 @@
 var formidable = require('formidable');
 var fs = require('fs');
+/// Include ImageMagick
+
+
+
 var basicAuth = require('basic-auth');
 var mongoose = require('mongoose');
 var Post = mongoose.model('Post');
@@ -37,6 +41,10 @@ module.exports = function (app, bodyParser) {
         });
     });
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    
+
     app.post('/api/user/store', function (req, res) {
         User.findOne({
             fb_id: req.body.fb_id
@@ -241,7 +249,7 @@ module.exports = function (app, bodyParser) {
                     });
                 }
             }
-            copyFile(temp_path, imagePath, callback);
+            copyFile( temp_path, imagePath, callback);
         });
 
     });
@@ -371,7 +379,11 @@ var pop = function (str) {
 
 
 
+
 function copyFile(source, target, cb) {
+
+
+
     var cbCalled = false;
 
     var rd = fs.createReadStream(source);

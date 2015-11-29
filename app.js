@@ -6,6 +6,11 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var hogan = require('hogan-express');
+var im = require('imagemagick'),
+    util = require('util'),
+    qt   = require('quickthumb');
+
+
 
 
 //initiating app
@@ -33,6 +38,8 @@ var routes = require('./routes/index');
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 
+// Use quickthumb
+app.use(qt.static(__dirname + '/public'));
 
 
 app.use(bodyParser.json());
