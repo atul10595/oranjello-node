@@ -92,11 +92,13 @@ module.exports = function (app, bodyParser) {
     });
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    app.post('/api/user/getname',function(req,res){
-        User.findOne({fb_id:req.body.user_id},function(err,user){
-            if(err) console.log('error!');
+    app.post('/api/user/getname', function (req, res) {
+        User.findOne({
+            fb_id: req.body.user_id
+        }, function (err, user) {
+            if (err) console.log('error!');
             return res.send({
-                username:user.name
+                username: user.name
             });
         });
     });
@@ -115,21 +117,21 @@ module.exports = function (app, bodyParser) {
     });
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     app.post('/api/posts/like', function (req, res) {
-        flag=0;
+        flag = 0;
         Post.findById(req.body.post_id, function (err, post) {
             if (err) {
                 return err;
             } else if ((post.liked_by.indexOf(req.body.fb_id) < 0) && (post.disliked_by.indexOf(req.body.fb_id) > -1)) {
                 post.disliked_by.splice(post.disliked_by.indexOf(req.body.fb_id), 1);
                 post.liked_by.push(req.body.fb_id);
-                if (post.flag.indexOf(req.body.fb_id) < 0){
+                if (post.flag.indexOf(req.body.fb_id) < 0) {
                     post.liked_by.push(req.body.fb_id);
-                    flag=1;
+                    flag = 1;
                 }
                 post.likes = post.likes + 2;
                 post.save(function (err) {
                     if (err) console.log('post point dint inc.');
-                    if (flag===1) {
+                    if (flag === 1) {
                         User.findOne({
                             fb_id: post.user_id
                         }, function (err, user) {
@@ -208,7 +210,7 @@ module.exports = function (app, bodyParser) {
 
             // fs.createReadStream(temp_path).pipe(fs.createWriteStream(imagePath));
             var callback = function (status) {
-              console.log("Called callback status = " + status);
+                console.log("Called callback status = " + status);
                 if (status == true) {
                     var dt = new Date().getDate();
 
@@ -267,7 +269,7 @@ module.exports = function (app, bodyParser) {
     app.get('/newposts/trending/:q', function (req, res) {
 
         // console.log(req.param('q'));
-        getPosts(req.param('q'), -1, function (post) {
+        getPosts(req.param('q'), 2, function (post) {
             if (post != false)
                 res.send(post);
             else
@@ -287,8 +289,8 @@ module.exports = function (app, bodyParser) {
     app.get('/newposts/new/:q', function (req, res) {
 
 
-        // console.log(req.param('q'));
-        getPostsSortedByTitle(req.param('q'), function (post) {
+         console.log('sadasdasdadsad'+req.param('q'));
+        getPosts(req.param('q'), 3, function (post) {
             if (post != false)
                 res.send(post);
             else
@@ -311,25 +313,41 @@ module.exports = function (app, bodyParser) {
         });
     });
 }
-var getPosts = function (q, isReverse, callback) {
-        Post.find({}).sort('date').exec(function (err, posts) {
-
+var getPosts = function (q, getcase, callback) {
+    if (getcase === 1) {
+        Post.find({}).where('likes').gt(200).sort('likes').exec(function (err, posts) {
             if (q < posts.length)
                 callback(posts[q]);
             else
                 callback(false);
         });
-
+    } else if (getcase === 2) {
+        Post.find({}).where('likes').gt(50).lt(200).sort('likes').exec(function (err, posts) {
+            if (q < posts.length)
+                callback(posts[q]);
+            else
+                callback(false);
+        });
+    } else if (getcase === 3) {
+        Post.find({}).where('likes').gt(0).sort('likes').exec(function (err, posts) {
+            if (q < posts.length)
+                callback(posts[q]);
+            else
+                callback(false);
+        });
+    }
     // callback();
 }
 var getUserPosts = function (q, user_id, callback) {
-        Post.find({user_id:user_id}).sort('likes').exec(function (err, posts) {
+    Post.find({
+        user_id: user_id
+    }).sort('likes').exec(function (err, posts) {
 
-            if (q < posts.length)
-                callback(posts[q]);
-            else
-                callback(false);
-        });
+        if (q < posts.length)
+            callback(posts[q]);
+        else
+            callback(false);
+    });
 
     // callback();
 }
