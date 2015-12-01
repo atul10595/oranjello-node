@@ -336,7 +336,7 @@ module.exports = function(app, bodyParser) {
         if (getcase == 0) {
             console.log("Hello. 0 fi");
 
-            Post.find({}).where('likes').gt(hotThreshold).sort('likes').exec(function(err, posts) {
+            Post.find({}).where('likes').gt(hotThreshold).exec(function(err, posts) {
 
                 console.log("------- [" + getcase + "] -----" + posts.length);
                 res.send({
@@ -346,7 +346,7 @@ module.exports = function(app, bodyParser) {
         } else if (getcase == 1) {
             console.log("Hello. 1 fi");
 
-            Post.find({}).where('likes').gt(trendThreshold).lt(hotThreshold).sort('likes').exec(function(err, posts) {
+            Post.find({}).where('likes').gt(trendThreshold).lt(hotThreshold).exec(function(err, posts) {
                 console.log("------- [" + getcase + "] -----" + posts.length);
                 res.send({
                     "count": posts.length
@@ -356,7 +356,7 @@ module.exports = function(app, bodyParser) {
 
             console.log("Hello. 2 fi");
 
-            Post.find({}).where('likes').gt(0).sort('likes').exec(function(err, posts) {
+            Post.find({}).exec(function(err, posts) {
                 console.log("------- [" + getcase + "] -----" + posts.length);
 
                 res.send({
@@ -406,7 +406,7 @@ var getPosts = function(q, getcase, callback) {
                 callback(false);
         });
     } else if (getcase === 2) {
-        Post.find({}).where('likes').sort('-date').exec(function(err, posts) {
+        Post.find({}).sort('-date').exec(function(err, posts) {
             if (q < posts.length)
                 callback(posts[q]);
             else
