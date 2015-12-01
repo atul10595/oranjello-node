@@ -34,7 +34,7 @@ var auth = function(req, res, next) {
 
 
 // these are the values that affect posts in the trend screen etc. in the app
-var trendThreshold = 1, hotThreshold = 4;
+var trendThreshold = 2, hotThreshold = 5;
 module.exports = function(app, bodyParser) {
     // app.get('*', function())
 
@@ -110,9 +110,17 @@ module.exports = function(app, bodyParser) {
             fb_id: req.body.user_id
         }, function(err, user) {
             if (err) console.log('error!');
+
+            if(user){
             return res.send({
                 username: user.name
             });
+        }
+        else{
+            return res.send({
+                username: "No Name"
+            }); 
+        }
         });
     });
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -398,7 +406,7 @@ var getPosts = function(q, getcase, callback) {
                 callback(false);
         });
     } else if (getcase === 2) {
-        Post.find({}).where('likes').gt(0).sort('likes').exec(function(err, posts) {
+        Post.find({}).where('likes').gt(0).sort('-date').exec(function(err, posts) {
             if (q < posts.length)
                 callback(posts[q]);
             else
@@ -410,7 +418,7 @@ var getPosts = function(q, getcase, callback) {
 var getUserPosts = function(q, user_id, callback) {
     Post.find({
         user_id: user_id
-    }).sort('likes').exec(function(err, posts) {
+    }).sort('-likes').exec(function(err, posts) {
 
         if (q < posts.length)
             callback(posts[q]);
