@@ -406,7 +406,7 @@ var getPosts = function(q, getcase, callback) {
                 callback(false);
         });
     } else if (getcase === 2) {
-        Post.find({}).where('likes').gt(0).sort('-date').exec(function(err, posts) {
+        Post.find({}).where('likes').sort('-date').exec(function(err, posts) {
             if (q < posts.length)
                 callback(posts[q]);
             else
